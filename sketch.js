@@ -9,8 +9,9 @@ let prevMouseX = 0;
 let prevMouseY = 0;
 
 // Location marker
-let locationX = 400;
-let locationY = 400;
+let locationX = 900;
+let locationY = 500;
+let locationImg;
 
 // Media markers
 let markers = [
@@ -23,11 +24,12 @@ let markers = [
 function preload(){
   // Load map:
    data = loadJSON('assets/map.json', gotData, gotError);
+   locationImg = loadImage('assets/LocationFigure.png');
   
    // Load images and audio files
   for (let marker of markers){
     console.log(marker);
-    if (marker.type === 'image') {
+    if (marker.type === 'image') {  
       console.log(marker.path);
       marker.image = loadImage(marker.path);
     } else if (marker.type === 'audio') {
@@ -37,23 +39,24 @@ function preload(){
 }
 
 
+function setup() {  
+    createCanvas(windowWidth, windowHeight);
 
-function setup() {
-    createCanvas(800, 800);
-    background('white');
+    // I delted the bacgkround color here, because it is initialized in the draw function. 
    
     noFill();
     strokeWeight(0.5);
-    frameRate(10);
+
+    // I found the navigation to be a bit slow, so I increased the frame rate a bit. 
+    frameRate(50);
 }
 
 function draw() {
-    background('white');
+    background('#B2E8EB');
    
-    
     // Apply zoom and pan transformations
     push();
-    translate(panX, panY);
+    translate(panX, panY);  
     scale(zoomLevel);
   
     
@@ -143,7 +146,9 @@ function showMap(outline=true, buildings=true, paths=true, nature=true, media=tr
     if (buildings){
       if (tags.building === 'bunker') {
         stroke(150, 100, 50);
-        fill(200, 150, 100, 120);
+
+        // changed the fill input to HEX, because it will be easier for the participants to understand and modify the color with the color picker. 
+        fill('#C89664')
         strokeWeight(4 / zoomLevel);
       } else if (tags.building) {
         stroke(150, 100, 50);
@@ -166,11 +171,11 @@ function showMap(outline=true, buildings=true, paths=true, nature=true, media=tr
     if (nature){
       if (tags.waterway || tags.natural === 'water') {
       stroke('lightBlue');
-      fill(100, 150, 220, 150); 
+      fill('#6496dc')
       strokeWeight(1 / zoomLevel);
       } else if (tags.landuse === 'grass') {
         stroke(100, 180, 100);
-        fill(150, 200, 150, 200); 
+        fill('#9ccfa8')
         strokeWeight(1 / zoomLevel);
       }
     }
@@ -215,8 +220,9 @@ function showLocationInMap(){
     }
   }
   noStroke();
-  fill ('gold');
-  circle(locationX, locationY, 10 / zoomLevel);
+  fill('#ffd700')
+  image(locationImg, locationX, locationY, 100 / zoomLevel, 100 / zoomLevel);
+  //circle(locationX, locationY, 20 / zoomLevel);
   noFill();
 }
 
@@ -230,10 +236,10 @@ function showMediaMarkers(){
     // Draw marker based on type
     noStroke();
     if(marker.type === 'image'){
-      fill('blue');
+      fill('#0000ff')
       circle(x, y, 8 / zoomLevel);
     }else if(marker.type === 'audio'){
-      fill('green');
+      fill('#008000')
       rect(x, y, 8 / zoomLevel, 8 / zoomLevel);
     }
   
