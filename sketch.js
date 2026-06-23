@@ -11,12 +11,14 @@ let prevMouseY = 0;
 // Location marker
 let locationX = 900;
 let locationY = 500;
+let locationImgHeight = 50 / zoomLevel;
+let locationImgWidth = 50 / zoomLevel;
 let locationImg;
 
 // Media markers
 let markers = [
-{ id: 0, lat: 55.7215, lon: 12.6686, label: 'The sky', type: 'image', path: 'assets/sky.jpg', image: null, isPlaying: false},
-{ id: 1, lat: 55.7218, lon: 12.6676, label: 'The sea', type: 'audio', path: 'assets/sea.mp3', audio: null, isPlaying: false}
+{ id: 0, lat: 55.7215, lon: 12.6686, label: 'The sky', type: 'image', path: 'assets/sky.jpg', image: null, isPlaying: false, height: null, width: null},
+{ id: 1, lat: 55.7218, lon: 12.6676, label: 'The sea', type: 'audio', path: 'assets/sea.mp3', audio: null, isPlaying: false, height: null, width: null}
 ];
 
 
@@ -24,9 +26,12 @@ let markers = [
 function preload(){
   // Load map:
    data = loadJSON('assets/map.json', gotData, gotError);
-   locationImg = loadImage('assets/LocationFigure.png');
+
+   // load location and marker images
+   locationIcon = loadImage('assets/LocationFigure.png');
+   markerIcon = loadImage('assets/markerBlue.png');
   
-   // Load images and audio files
+   // Load marker paths
   for (let marker of markers){
     console.log(marker);
     if (marker.type === 'image') {  
@@ -38,16 +43,10 @@ function preload(){
   }
 }
 
-
 function setup() {  
     createCanvas(windowWidth, windowHeight);
-
-    // I delted the bacgkround color here, because it is initialized in the draw function. 
-   
     noFill();
     strokeWeight(0.5);
-
-    // I found the navigation to be a bit slow, so I increased the frame rate a bit. 
     frameRate(50);
 }
 
@@ -59,7 +58,6 @@ function draw() {
     translate(panX, panY);  
     scale(zoomLevel);
   
-    
     // Draw map elements
     showMap(true, true, true, true, true, true, true);
 
@@ -77,6 +75,7 @@ function gotData() {
   console.log('got data');
   
 }
+
 function gotError() {
   console.log('got error');
 }
@@ -221,8 +220,7 @@ function showLocationInMap(){
   }
   noStroke();
   fill('#ffd700')
-  image(locationImg, locationX, locationY, 100 / zoomLevel, 100 / zoomLevel);
-  //circle(locationX, locationY, 20 / zoomLevel);
+  image(locationIcon, locationX, locationY, locationImgHeight, locationImgWidth);
   noFill();
 }
 
@@ -236,11 +234,14 @@ function showMediaMarkers(){
     // Draw marker based on type
     noStroke();
     if(marker.type === 'image'){
-      fill('#0000ff')
-      circle(x, y, 8 / zoomLevel);
+      marker.height = 20 / zoomLevel;
+      marker.width = 20 / zoomLevel;
+      image(markerIcon, x, y, marker.width, marker.height);
     }else if(marker.type === 'audio'){
-      fill('#008000')
-      rect(x, y, 8 / zoomLevel, 8 / zoomLevel);
+      marker.height = 10 / zoomLevel;
+      marker.width = 10 / zoomLevel;
+      fill('#1cde7a')
+      rect(x, y, marker.width, marker.height);
     }
   
     // Draw label 
@@ -250,25 +251,23 @@ function showMediaMarkers(){
       text(marker.label, x + 12 / zoomLevel, y - 5 / zoomLevel);
     }
 
-    // Check collision with the location marker and trigger interaction
-     checkCollision(marker, x, y);
+    // Check collision with the location marker and trigger interaction 
+     checkCollision(marker, x, y, marker.width, marker.height);
   
   }
 }
 
-function checkCollision(marker, markerX, markerY){
-  // Calculate distance between location marker and marker
-  // Since they may have weird shapes, we just use it to the begining of the shape, not its center, but maybe we can fix it??
-  let distance = dist(locationX, locationY, markerX, markerY);
-  
-  // Collision sensitivity
-  let locationRadius = 10 / zoomLevel;
-  let markerRadius = 10 / zoomLevel;
+function checkCollision(marker, markerX, markerY, markerWidth, markerHeight){
+  // using the rectRect collision functions defined in this repository: https://github.com/jeffThompson/CollisionDetection/blob/master/CodeExamples/RectRect/RectRect.pde
 
-  if(distance < locationRadius + markerRadius){
-    onMarkerCollision(marker, markerX, markerY);
-  }
+  if (locationX + locationImgWidth >= markerX &&    // r1 right edge past r2 left
+      locationX <= markerX + markerWidth &&    // r1 left edge past r2 right
+      locationY + locationImgHeight >= markerY &&    // r1 top edge past r2 bottom
+      locationY <= markerY + markerHeight) {    // r1 bottom edge past r2 top
+      onMarkerCollision(marker, markerX, markerY);
+      }
 }
+
 
 function onMarkerCollision(marker, markerX, markerY){
   if(marker.type === 'image' && marker.image){
