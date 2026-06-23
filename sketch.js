@@ -234,10 +234,12 @@ function showMediaMarkers(){
     // Draw marker based on type
     noStroke();
     if(marker.type === 'image'){
+      // setting the height/width of this type of marker
       marker.height = 20 / zoomLevel;
       marker.width = 20 / zoomLevel;
       image(markerIcon, x, y, marker.width, marker.height);
     }else if(marker.type === 'audio'){
+      // setting the height/width of this type of marker
       marker.height = 10 / zoomLevel;
       marker.width = 10 / zoomLevel;
       fill('#1cde7a')
@@ -271,15 +273,14 @@ function checkCollision(marker, markerX, markerY, markerWidth, markerHeight){
 
 function onMarkerCollision(marker, markerX, markerY){
   if(marker.type === 'image' && marker.image){
-   
-    // Exit transformed context to draw image at screen scale
-    pop();
-    let screenX = markerX * zoomLevel + panX;
+    push(); // Save the current transformed context
+    // Reset to screen space so image draws at screen coordinates
+    resetMatrix();
+    let screenX = markerX * zoomLevel + panX;0
     let screenY = markerY * zoomLevel + panY;
     image(marker.image, screenX, screenY, 100, 100);
-    push(); 
-    // Re-enter transformed context
-    
+    pop(); 
+    // Restore the transformed context
   }
   else if(marker.type === 'audio' && marker.audio && !marker.isPlaying){
     marker.isPlaying = true;
