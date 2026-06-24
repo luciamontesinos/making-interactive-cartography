@@ -1,4 +1,12 @@
+// ************************************************************************************************************
+// ✎ᝰ.ᐟ⋆⑅˚₊ sketch.js, in this file we preload media and setup the P5.js canvas, 
+// such that is renders the map of Ungdomsøen. This is done by loading the map data from a JSON file and drawing it on the canvas.
+// This is not the focus of the workshop, but you are welcome to expore the code and understand how it works. 
+// ************************************************************************************************************
+
+
 let data = null;
+
 const BOUNDS = {
   minLat: 55.717,
   minLon: 12.6555,
@@ -23,52 +31,24 @@ let locationX = 900;
 let locationY = 500;
 let locationImgHeight = 50 / zoomLevel;
 let locationImgWidth = 50 / zoomLevel;
-let locationImg;
-
-// Media markers
-let markers = [
-  {
-    id: 0,
-    lat: 55.7215,
-    lon: 12.6686,
-    label: "The sky",
-    type: "image",
-    path: "assets/sky.jpg",
-    image: null,
-    isPlaying: false,
-    height: null,
-    width: null,
-  },
-  {
-    id: 1,
-    lat: 55.7218,
-    lon: 12.6676,
-    label: "The sea",
-    type: "audio",
-    path: "assets/sea.mp3",
-    audio: null,
-    isPlaying: false,
-    height: null,
-    width: null,
-  },
-];
+let locationIcon;
 
 function preload() {
   // Load map:
   data = loadJSON("assets/map.json", gotData, gotError);
 
-  // load location and marker images
-  locationIcon = loadImage("assets/LocationFigure.png");
-  markerIcon = loadImage("assets/markerBlue.png");
+  // Load location icon
+  locationIcon = setLocationIcon();
 
   // Load marker paths
   for (let marker of markers) {
     console.log(marker);
+    marker.iconPath = loadImage(marker.iconPath);
     if (marker.type === "image") {
-      console.log(marker.path);
-      marker.image = loadImage(marker.path);
+      console.log(marker.mediaPath);
+      marker.image = loadImage(marker.mediaPath);
     } else if (marker.type === "audio") {
-      marker.audio = loadSound(marker.path);
+      marker.audio = loadSound(marker.mediaPath);
     }
   }
 }
@@ -81,7 +61,7 @@ function setup() {
 }
 
 function draw() {
-  background("#B2E8EB");
+  setBackgroundStyle();
 
   // Apply zoom and pan transformations
   push();
@@ -107,102 +87,34 @@ function showMap(
   paths = true,
   nature = true,
   shelters = true,
-  media = true,
 ) {
-  // Decide which elements you want to show in the map
+  if (!data.elements) return;
 
-  if (data.elements) {
-    for (let el of data.elements) {
-      if (el.type !== "way" || !el.geometry) continue;
+  for (let el of data.elements) {
+    if (el.type !== "way" || !el.geometry) continue;
 
-      const tags = el.tags || {};
+    const tags = el.tags || {};
 
-      if (outline) {
-        // How to draw the main outline of the island?? figure out the tag
-      }
-      if (buildings) {
-        if (tags.building === "bunker") {
-          stroke(150, 100, 50);
-          fill("#C89664");
-          strokeWeight(4 / zoomLevel);
-        } else if (tags.building) {
-          stroke("#bc6004");
-          fill("#754e28");
-          strokeWeight(0.5 / zoomLevel);
-        }
-      }
-      if (shelters) {
-        push(); // isolate shelter styles
-        for (let el of data.elements) {
-          if (el.type !== "node" || el.tags?.amenity !== "shelter") continue;
+    if (buildings)  setBuildingStyle(tags);
+    if (paths)      setPathStyle(tags);
+    if (nature)     setNatureStyle(tags);
+    else            { noStroke(); noFill(); }
 
-          let x = map(el.lon, BOUNDS.minLon, BOUNDS.maxLon, 0, width);
-          let y = map(
-            el.lat,
-            BOUNDS.maxLat,
-            BOUNDS.minLat,
-            0,
-            width / geoAspectRatio,
-          );
-
-          fill("#ef0c0c");
-          stroke("#991515");
-          strokeWeight(2 / zoomLevel);
-          circle(x, y, 10 / zoomLevel);
-        }
-        pop(); // restore previous styles
-      }
-      if (paths) {
-        if (tags.cycleway || tags.highway === "cycleway") {
-          stroke("orange");
-          strokeWeight(1);
-          noFill();
-        } else if (
-          tags.footway ||
-          tags.highway === "footway" ||
-          tags.highway === "path"
-        ) {
-          stroke("purple");
-          strokeWeight(1 / zoomLevel);
-          noFill();
-        }
-      }
-      if (nature) {
-        if (tags.waterway || tags.natural === "water") {
-          stroke("lightBlue");
-          fill("#6496dc");
-          strokeWeight(1 / zoomLevel);
-        }
-        if (tags.natural === "coastline") {
-          stroke("#a712d9");
-          strokeWeight(1);
-        } else if (tags.landuse === "grass") {
-          stroke(100, 180, 100);
-          fill("#9fffb5");
-          strokeWeight(1 / zoomLevel);
-        }
-      }
-
-      // We don't draw the rest of the data
-      else {
-        noStroke();
-        noFill();
-      }
-
-      beginShape();
-      for (let pt of el.geometry) {
-        let x = map(pt.lon, BOUNDS.minLon, BOUNDS.maxLon, 0, width);
-        let y = map(
-          pt.lat,
-          BOUNDS.maxLat,
-          BOUNDS.minLat,
-          0,
-          width / geoAspectRatio,
-        );
-        vertex(x, y);
-      }
-      endShape(CLOSE);
+    beginShape(); 
+    for (let pt of el.geometry) {
+      vertex(lonToX(pt.lon), latToY(pt.lat));
     }
+    endShape(CLOSE);
+  }
+
+  if (shelters) {
+    push();
+    for (let el of data.elements) {
+      if (el.type !== "node" || el.tags?.amenity !== "shelter") continue;
+      setShelterStyle();
+      circle(lonToX(el.lon), latToY(el.lat), 10 / zoomLevel);
+    }
+    pop();
   }
 }
 
@@ -255,7 +167,7 @@ function showMediaMarkers() {
       // setting the height/width of this type of marker
       marker.height = 20 / zoomLevel;
       marker.width = 20 / zoomLevel;
-      image(markerIcon, x, y, marker.width, marker.height);
+      image(marker.iconPath, x, y, marker.width, marker.height);
     } else if (marker.type === "audio") {
       // setting the height/width of this type of marker
       marker.height = 10 / zoomLevel;
@@ -284,7 +196,6 @@ function showMediaMarkers() {
 
 // Collision detection by creating a bounding box
 function checkCollision(marker, markerX, markerY, markerWidth, markerHeight) {
-
   if (
     locationX + locationImgWidth >= markerX && // r1 right edge past r2 left
     locationX <= markerX + markerWidth && // r1 left edge past r2 right
@@ -319,67 +230,3 @@ function onMarkerCollision(marker, markerX, markerY) {
   }
 }
 
-
-
-
-////////////////////////////////////////////////////////////////
-///////////HELPER FUNCTIONS TO MOVE IN THE MAP//////////////////
-////////////////////////////////////////////////////////////////
-
-// Handle data loading callbacks
-function gotData() {
-  console.log("got data");
-}
-
-function gotError() {
-  console.log("got error");
-}
-
-// Handle mouse wheel zoom
-function mouseWheel(event) {
-  // Zoom towards mouse position
-  const zoomFactor = 1.1;
-  const oldZoom = zoomLevel;
-
-  if (event.delta > 0) {
-    zoomLevel /= zoomFactor; // Zoom out
-  } else {
-    zoomLevel *= zoomFactor; // Zoom in
-  }
-
-  // Keep zoom within bounds
-  zoomLevel = constrain(zoomLevel, 0.5, 20);
-
-  // Adjust pan to keep zoom centered on mouse
-  const zoomChange = zoomLevel - oldZoom;
-  panX -= (mouseX - panX) * (zoomChange / oldZoom);
-  panY -= (mouseY - panY) * (zoomChange / oldZoom);
-
-  return false; // Prevent default scrolling
-}
-
-// Handle mouse drag for panning
-function mousePressed() {
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
-}
-
-function mouseDragged() {
-  const deltaX = mouseX - prevMouseX;
-  const deltaY = mouseY - prevMouseY;
-
-  panX += deltaX;
-  panY += deltaY;
-
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
-
-  return false; // Prevent default behavior
-}
-
-function doubleClicked() {
-  // Convert screen coordinates to world/map coordinates
-  locationX = (mouseX - panX) / zoomLevel;
-  locationY = (mouseY - panY) / zoomLevel;
-  showLocationInMap();
-}
