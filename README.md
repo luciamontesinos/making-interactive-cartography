@@ -1,10 +1,9 @@
 Hi there! Welcome to Making Interactive Cartography, a workshop organised by Lucía Montesinos and Louie Søs Meyer for Cursor's Creative Coding Camp 2026
 
 # Workshop description
+Cartography is the art, science, and technology of making and studying maps. Maps influence our perception of  space as well as our understanding of bodies, ecologies and communities in relation to space. Maps are never objective representations. 
 
-
-# Presentation slides
-
+In this workshop we introduce a critical perspective on maps, and highlight creative technological examples of maps that have been queered and/or hacked. 
 
 # Getting started
 
@@ -45,13 +44,20 @@ out geom;
 5. Add the file into the assets folder
 
 ### Your media
-Include the different types of media into the assets folder.
+Include the different types of media into the assets folder. Make sure you tag them correctly based on the type: image/video
 
 ## Code 
 
-### The functions we have prepared for you
-We have prepared a very typical and basic navigation system.
+We have prepared a very typical and basic navigation system to zoom in an out and to move the location marker. Feel free to explore them at home.
 
 
 ### The functions you need to focus on
+**showMap()**  Allows you to choose what things to show in the map: outline, paths, nature, buildings, and your media. You can choose how to display them. Explore how to remove boundaries, give more importance to others, and what kind of elements in the map to reveal or hide.
+
+**showMediaMarkers()** Allows you to choose how your markers will show. Explore different shapes.
+
+**showLocationInMap()** Allows you to choose how to show the location marker. This is not using real-live location, but it is a marker that you can move using your keyboard and mouse to move around the map. You can explore ways of personalising the movement, and the appearance.
+
+**onMarkerCollision()** Allows you to define the behaviour to explore and interact with the media markers. This function is triggered whenever the location marker is nearby a media marker.
+
 

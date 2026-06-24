@@ -100,62 +100,6 @@ function draw() {
   pop();
 }
 
-function gotData() {
-  console.log("got data");
-}
-
-function gotError() {
-  console.log("got error");
-}
-
-// Handle mouse wheel zoom
-function mouseWheel(event) {
-  // Zoom towards mouse position
-  const zoomFactor = 1.1;
-  const oldZoom = zoomLevel;
-
-  if (event.delta > 0) {
-    zoomLevel /= zoomFactor; // Zoom out
-  } else {
-    zoomLevel *= zoomFactor; // Zoom in
-  }
-
-  // Keep zoom within bounds
-  zoomLevel = constrain(zoomLevel, 0.5, 20);
-
-  // Adjust pan to keep zoom centered on mouse
-  const zoomChange = zoomLevel - oldZoom;
-  panX -= (mouseX - panX) * (zoomChange / oldZoom);
-  panY -= (mouseY - panY) * (zoomChange / oldZoom);
-
-  return false; // Prevent default scrolling
-}
-
-// Handle mouse drag for panning
-function mousePressed() {
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
-}
-
-function mouseDragged() {
-  const deltaX = mouseX - prevMouseX;
-  const deltaY = mouseY - prevMouseY;
-
-  panX += deltaX;
-  panY += deltaY;
-
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
-
-  return false; // Prevent default behavior
-}
-
-function doubleClicked() {
-  // Convert screen coordinates to world/map coordinates
-  locationX = (mouseX - panX) / zoomLevel;
-  locationY = (mouseY - panY) / zoomLevel;
-  showLocationInMap();
-}
 
 function showMap(
   outline = true,
@@ -179,8 +123,6 @@ function showMap(
       if (buildings) {
         if (tags.building === "bunker") {
           stroke(150, 100, 50);
-
-          // changed the fill input to HEX, because it will be easier for the participants to understand and modify the color with the color picker.
           fill("#C89664");
           strokeWeight(4 / zoomLevel);
         } else if (tags.building) {
@@ -320,6 +262,12 @@ function showMediaMarkers() {
       marker.width = 10 / zoomLevel;
       fill("#1cde7a");
       rect(x, y, marker.width, marker.height);
+    } else if (marker.type === "text") {
+      // setting the height/width of this type of marker
+      marker.height = 10 / zoomLevel;
+      marker.width = 10 / zoomLevel;
+      fill("#1cde7a");
+      triangle(x, y, x + marker.width, y + marker.height);
     }
 
     // Draw label
@@ -334,8 +282,8 @@ function showMediaMarkers() {
   }
 }
 
+// Collision detection by creating a bounding box
 function checkCollision(marker, markerX, markerY, markerWidth, markerHeight) {
-  // using the rectRect collision functions defined in this repository: https://github.com/jeffThompson/CollisionDetection/blob/master/CodeExamples/RectRect/RectRect.pde
 
   if (
     locationX + locationImgWidth >= markerX && // r1 right edge past r2 left
@@ -348,6 +296,7 @@ function checkCollision(marker, markerX, markerY, markerWidth, markerHeight) {
   }
 }
 
+// Marker interaction 
 function onMarkerCollision(marker, markerX, markerY) {
   if (marker.type === "image" && marker.image) {
     push(); // Save the current transformed context
@@ -368,4 +317,69 @@ function onMarkerCollision(marker, markerX, markerY) {
       marker.audio.stop();
     }, 5000);
   }
+}
+
+
+
+
+////////////////////////////////////////////////////////////////
+///////////HELPER FUNCTIONS TO MOVE IN THE MAP//////////////////
+////////////////////////////////////////////////////////////////
+
+// Handle data loading callbacks
+function gotData() {
+  console.log("got data");
+}
+
+function gotError() {
+  console.log("got error");
+}
+
+// Handle mouse wheel zoom
+function mouseWheel(event) {
+  // Zoom towards mouse position
+  const zoomFactor = 1.1;
+  const oldZoom = zoomLevel;
+
+  if (event.delta > 0) {
+    zoomLevel /= zoomFactor; // Zoom out
+  } else {
+    zoomLevel *= zoomFactor; // Zoom in
+  }
+
+  // Keep zoom within bounds
+  zoomLevel = constrain(zoomLevel, 0.5, 20);
+
+  // Adjust pan to keep zoom centered on mouse
+  const zoomChange = zoomLevel - oldZoom;
+  panX -= (mouseX - panX) * (zoomChange / oldZoom);
+  panY -= (mouseY - panY) * (zoomChange / oldZoom);
+
+  return false; // Prevent default scrolling
+}
+
+// Handle mouse drag for panning
+function mousePressed() {
+  prevMouseX = mouseX;
+  prevMouseY = mouseY;
+}
+
+function mouseDragged() {
+  const deltaX = mouseX - prevMouseX;
+  const deltaY = mouseY - prevMouseY;
+
+  panX += deltaX;
+  panY += deltaY;
+
+  prevMouseX = mouseX;
+  prevMouseY = mouseY;
+
+  return false; // Prevent default behavior
+}
+
+function doubleClicked() {
+  // Convert screen coordinates to world/map coordinates
+  locationX = (mouseX - panX) / zoomLevel;
+  locationY = (mouseY - panY) / zoomLevel;
+  showLocationInMap();
 }
