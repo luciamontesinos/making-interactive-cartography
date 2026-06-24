@@ -43,7 +43,10 @@ function preload() {
   // Load marker paths
   for (let marker of markers) {
     console.log(marker);
-    marker.iconPath = loadImage(marker.iconPath);
+    if (marker.iconPath) {
+      // Save the loaded image into a new property so you can use it later in draw()
+      marker.icon = loadImage(marker.iconPath);
+    }
     if (marker.type === "image") {
       console.log(marker.mediaPath);
       marker.image = loadImage(marker.mediaPath);
@@ -58,6 +61,9 @@ function setup() {
   noFill();
   strokeWeight(0.5);
   frameRate(50);
+  robotoMono = loadFont("assets/roboto-mono/RobotoMono-Italic.ttf");
+  // Initialize the FFT analyzer
+  fft = new p5.FFT();
 }
 
 function draw() {
@@ -87,6 +93,8 @@ function showMap(
   paths = true,
   nature = true,
   shelters = true,
+  military = true,
+  leisure = true,
 ) {
   if (!data.elements) return;
 
@@ -98,6 +106,8 @@ function showMap(
     if (buildings)  setBuildingStyle(tags);
     if (paths)      setPathStyle(tags);
     if (nature)     setNatureStyle(tags);
+    if(military)     setMilitaryStyle(tags);
+    if(leisure)     setLeisureStyle(tags);
     else            { noStroke(); noFill(); }
 
     beginShape(); 
@@ -163,31 +173,7 @@ function showMediaMarkers() {
 
     // Draw marker based on type
     noStroke();
-    if (marker.type === "image") {
-      // setting the height/width of this type of marker
-      marker.height = 20 / zoomLevel;
-      marker.width = 20 / zoomLevel;
-      image(marker.iconPath, x, y, marker.width, marker.height);
-    } else if (marker.type === "audio") {
-      // setting the height/width of this type of marker
-      marker.height = 10 / zoomLevel;
-      marker.width = 10 / zoomLevel;
-      fill("#1cde7a");
-      rect(x, y, marker.width, marker.height);
-    } else if (marker.type === "text") {
-      // setting the height/width of this type of marker
-      marker.height = 10 / zoomLevel;
-      marker.width = 10 / zoomLevel;
-      fill("#1cde7a");
-      triangle(x, y, x + marker.width, y + marker.height);
-    }
-
-    // Draw label
-    if (marker.label) {
-      fill(0);
-      textSize(10 / zoomLevel);
-      text(marker.label, x + 12 / zoomLevel, y - 5 / zoomLevel);
-    }
+    drawMarker(marker, x, y)
 
     // Check collision with the location marker and trigger interaction
     checkCollision(marker, x, y, marker.width, marker.height);
@@ -230,3 +216,23 @@ function onMarkerCollision(marker, markerX, markerY) {
   }
 }
 
+function debugAllTags() {
+  if (!data.elements) return;
+
+  let tagSummary = {};
+
+  for (let el of data.elements) {
+    const tags = el.tags || {};
+    for (let [key, value] of Object.entries(tags)) {
+      if (!tagSummary[key]) tagSummary[key] = new Set();
+      tagSummary[key].add(value);
+    }
+  }
+
+  let output = "=== ALL TAGS IN MAP DATA ===\n";
+  for (let [key, values] of Object.entries(tagSummary)) {
+    output += `${key}: ${[...values].join(", ")}\n`;
+  }
+
+  console.log(output);
+}

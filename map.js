@@ -19,20 +19,20 @@ let markers = [
     id: 0,
     lat: 55.7215,
     lon: 12.6686,
-    label: "The sky",
+    label: "Clouds in the sky",
     type: "image",
     // here we define the path to the image, meaning what file in the assets folder should this connect to this marker? 
     mediaPath: "assets/sky.jpg",
-    iconPath: "assets/blue.png",
+    iconPath: "assets/pin.png",
   },
   {
     id: 1,
     lat: 55.7218,
     lon: 12.6676,
-    label: "The sea",
+    label: "Sounds of the sea",
     type: "audio",
     mediaPath: "assets/sea.mp3",
-    iconPath: "assets/blue.png",
+    iconPath: "assets/pin.png",
   },
 ];
 
@@ -44,60 +44,85 @@ let markers = [
 // ***************************************************************************
 
 function setBackgroundStyle(){
+    // setting the color of the background of the map, the entire screen. 
+    // Maybe we consider it to be the ocean or the sky, or maybe you think of it as a digital space that isn't bound to geography. 
     background("#fbaaff");
 }
 
 function setBuildingStyle(tags) {
-    // setting the color and outline of the bunkers on the map
-  if (tags.building === "bunker") {
-    stroke(150, 100, 50);
-    fill("#C89664");
-    strokeWeight(4 / zoomLevel);
-    // setting the color and outline of other types of buildings on the map
-  } else if (tags.building) {
-    stroke("#bc6004");
-    fill("#754e28");
+    // setting the color and outline of general buildings on the map
+  if (tags.building) {
+    stroke("#ababab");
+    // currently making them 30% transparent so that you can see the map elements underneath.
+    fill("rgb(182, 179, 179) 248, 76, 0.3)");
     strokeWeight(0.5 / zoomLevel);
   }
 }
 
-function setPathStyle(tags) {
-    // setting the color of the bicycle paths on the map
-  if (tags.cycleway || tags.highway === "cycleway") {
-    stroke('#ff8c00');
-    strokeWeight(1);
-    noFill();
-    // setting the color of the footways on the map
-  } else if (tags.footway || tags.highway === "footway" || tags.highway === "path") {
-    stroke('#e004f9');
+function setMilitaryStyle(tags) {
+    // setting the color and outline of the bunkers on the map
+  if (tags.military === "bunker" || tags.building === "bunker") {
+    //currently making them 30% transparent so that you can see the map elements underneath.
+    fill("rgba(2, 248, 76, 0.3)");
+    fill("rgba(12, 254, 85, 0.3)");  
     strokeWeight(1 / zoomLevel);
-    noFill();
+}
+}
+
+function setPathStyle(tags) {
+  // Reset line dash defaults so regular paths aren't accidentally dashed
+  drawingContext.setLineDash([]); 
+
+  if (tags.route === "ferry" || tags.highway === "maritime" || tags.ferry) {
+    stroke("rgba(248, 144, 7, 0.8)"); 
+    strokeWeight(1.5 / zoomLevel);      
+    noFill();                           
+    // Wide-spaced dash pattern for the ferry route
+    drawingContext.setLineDash([8, 12]); 
+  } 
+  // Sets the color for the default paths/roads on land
+  else if (tags.highway) {
+    fill("rgba(192, 13, 237, 0.3)");  
+     // Note: if paths are open lines, fill('#ffffff') might create weird artifacts. If that happens, change to noFill();
+    strokeWeight(2 / zoomLevel);
+  }
+}
+
+function setLeisureStyle(tags) {
+  if (tags.leisure === "picnic_table" || tags.leisure === "outdoor_seating") {
+    stroke("#0206ff"); // Wood brown
+    fill("#0206ff");   // Light wood table body
+    strokeWeight(1 / zoomLevel);
+  } else if (tags.leisure) {
+    noFill();   // Default leisure green space
+    noStroke();
   }
 }
 
 function setNatureStyle(tags) {
-    // setting the color of the water on the map
-  if (tags.waterway || tags.natural === "water") {
-    stroke("#6496dc");
-    fill("#6496dc");
-    strokeWeight(1 / zoomLevel);
-    // setting the color of the coastline of the map
+  if (tags.natural === "beach") {
+    fill("#ece1be"); // Sandy gold
+    noStroke();
   } else if (tags.natural === "coastline") {
-    stroke("#a712d9");
+    stroke("#bb00ff");
     strokeWeight(1);
-    // setting the color of the grass of the map
+    // The tag natural = scrub is used to tag areas of uncultivated land covered with shrubs, bushes or stunted trees. herbs, and geophytes.
+  } else if (tags.natural === "scrub") {
+    stroke("#ace8fe");
+    fill("#afe8fc");
+    strokeWeight(1 / zoomLevel);
   } else if (tags.landuse === "grass") {
-    stroke('#64b964');
-    fill("#9fffb5");
+    stroke("rgba(68, 20, 243, 0.8)");  
+    fill("rgba(81, 46, 255, 0.8)");  
     strokeWeight(1 / zoomLevel);
   }
 }
 
 function setShelterStyle() {
 // setting the color of the shelters on the map
-  fill("#ef0c0c");
-  stroke("#991515");
-  strokeWeight(2 / zoomLevel);
+  fill("#ff6f15");
+  stroke("#ffffff");
+  strokeWeight(1 / zoomLevel);
 }
 
 
@@ -116,22 +141,22 @@ function drawMarker(marker, x, y) {
   noStroke();
 
   if (marker.type === "image") {
-    marker.width = 20 / zoomLevel;
-    marker.height = 20 / zoomLevel;
-    image(marker.iconPath, x, y, marker.width, marker.height);
+    marker.width = 25 / zoomLevel;
+    marker.height = 25 / zoomLevel;
+    image(marker.icon, x, y, marker.width, marker.height);
 
   } else if (marker.type === "audio") {
-    marker.width = 10 / zoomLevel;
-    marker.height = 10 / zoomLevel;
-    fill("#1cde7a");
-    rect(x, y, marker.width, marker.height);
+    marker.width = 25 / zoomLevel;
+    marker.height = 25 / zoomLevel;
+    image(marker.icon, x, y, marker.width, marker.height);
 
   // Draw the label
-  if (marker.label) {
+  }if (marker.label) {
     fill(0);
-    textSize(10 / zoomLevel);
+    textFont(robotoMono);
+    textSize(14 / zoomLevel);
+    textStyle(ITALIC);
     text(marker.label, x + 12 / zoomLevel, y - 5 / zoomLevel);
-  }
 }
 }
 
@@ -159,3 +184,4 @@ function onMarkerCollision(marker, markerX, markerY) {
     }, 5000);
   }
 }
+
