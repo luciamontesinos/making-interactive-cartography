@@ -101,8 +101,13 @@ function computeOverlayLayout() {
   const scale = min((width - 40) / targetW, (height - 40) / targetH, 1);
   const overlayW = targetW * scale;
   const overlayH = targetH * scale;
-  const overlayX = (width - overlayW) / 2;
-  const overlayY = (height - overlayH) / 2;
+  // overlay in right corner 
+  const overlayX = (width - overlayW) - 50;
+  const overlayY = 50;
+
+  // Overlay in the middle of the screen
+  /* const overlayX = (width - overlayW) / 2;
+  const overlayY = (height - overlayH) / 2; */
   return { overlayX, overlayY, overlayW, overlayH, scale };
 }
 

@@ -134,7 +134,7 @@ function setShelterStyle() {
 
 // Define the image you want to use for the location icon
 function setLocationIcon() {
-   return loadImage("assets/location.png");
+   return loadImage("assets/drawings/tui.png");
 }
 
 function drawMarker(marker, x, y) {
@@ -197,7 +197,7 @@ function openMarkerUnderLocation() {
     if (
       locationX + locationImgWidth >= x &&
       locationX <= x + w &&
-      locationY + locationImgHeight >= y &&
+      locationY + locationImgHeight >= y && 
       locationY <= y + h
     ) {
       marker.overlaySuppressed = false;

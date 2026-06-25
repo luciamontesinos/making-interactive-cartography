@@ -1,3 +1,6 @@
+<img width="1607" height="872" alt="Image" src="https://github.com/user-attachments/assets/5d5ee210-6bf2-4106-b672-f13d9802263b" />
+
+
 Hi there! Welcome to Making Interactive Cartography, a workshop organised by Lucía Montesinos and Louie Søs Meyer for Cursor's Creative Coding Camp 2026
 
 # Workshop description
@@ -6,7 +9,7 @@ Cartography is the art, science, and technology of making and studying maps. Ma
 In this workshop we introduce a critical perspective on maps, and highlight creative technological examples of maps that have been queered and/or hacked. 
 
 # Getting started
-
+  
 ## Coding environment:
 1. Download and open VS code
 2. Install the extension "p5.js 2.x Project Generator"
