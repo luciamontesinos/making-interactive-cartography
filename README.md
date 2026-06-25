@@ -28,6 +28,9 @@ To run the code, right click on index.html. A browser window should open, runnin
 
 **map.js** - This is going to be the playground for the workshop. Here you can add your own media markers to the map, change the colors of the map elements and change how markers look when you navigate into them on the map
 
+
+**overlay.js** - This controls the behaviour of the overlay that shows the terminal window. Here you can explore different ways dof visualising the media.
+
 **p5.js** - This is the p5js library. To know how to work with p5js check the documentation: https://p5js.org/reference/
 
 **p5.sound.min.js** - Also a p5js library, but with sound-related functions. To know how to work with p5js check the documentation: https://p5js.org/reference/p5.sound/

@@ -40,6 +40,9 @@ function preload() {
   // Load location icon
   locationIcon = setLocationIcon();
 
+  // Load terminal image
+  overlayState.terminalImage = loadImage("assets/Terminal.png");
+
   // Load marker paths
   for (let marker of markers) {
     console.log(marker);
@@ -62,7 +65,6 @@ function setup() {
   strokeWeight(0.5);
   frameRate(50);
   robotoMono = loadFont("assets/roboto-mono/RobotoMono-Italic.ttf");
-  // Initialize the FFT analyzer
   fft = new p5.FFT();
 }
 
@@ -84,6 +86,13 @@ function draw() {
   showMediaMarkers();
 
   pop();
+
+  // Draw an overlay terminal window for active markers
+  for (let marker of markers) {
+    if (marker.overlayActive) {
+      drawOverlay(marker);
+    }
+  }
 }
 
 
@@ -182,39 +191,25 @@ function showMediaMarkers() {
 
 // Collision detection by creating a bounding box
 function checkCollision(marker, markerX, markerY, markerWidth, markerHeight) {
-  if (
+  const isColliding =
     locationX + locationImgWidth >= markerX && // r1 right edge past r2 left
     locationX <= markerX + markerWidth && // r1 left edge past r2 right
     locationY + locationImgHeight >= markerY && // r1 top edge past r2 bottom
-    locationY <= markerY + markerHeight
-  ) {
-    // r1 bottom edge past r2 top
+    locationY <= markerY + markerHeight; // r1 bottom edge past r2 top
+
+  if (isColliding) {
     onMarkerCollision(marker, markerX, markerY);
+  } else {
+    if (marker.overlayActive) {
+      deactivateOverlay(marker, false);
+    }
+    if (marker.overlaySuppressed) {
+      marker.overlaySuppressed = false;
+    }
   }
 }
 
-// Marker interaction 
-function onMarkerCollision(marker, markerX, markerY) {
-  if (marker.type === "image" && marker.image) {
-    push(); // Save the current transformed context
-    // Reset to screen space so image draws at screen coordinates
-    resetMatrix();
-    let screenX = markerX * zoomLevel + panX;
-    0;
-    let screenY = markerY * zoomLevel + panY;
-    image(marker.image, screenX, screenY, 100, 100);
-    pop();
-    // Restore the transformed context
-  } else if (marker.type === "audio" && marker.audio && !marker.isPlaying) {
-    marker.isPlaying = true;
-    marker.audio.play();
-    // Stop it after 5 seconds.
-    setTimeout(() => {
-      marker.isPlaying = false;
-      marker.audio.stop();
-    }, 5000);
-  }
-}
+
 
 function debugAllTags() {
   if (!data.elements) return;

@@ -34,8 +34,8 @@ let markers = [
     mediaPath: "assets/sea.mp3",
     iconPath: "assets/pin.png",
   },
-];
 
+];
 
 // ***************************************************************************
 // 🎨 SECTION 2: MAP COLORS
@@ -150,6 +150,11 @@ function drawMarker(marker, x, y) {
     marker.height = 25 / zoomLevel;
     image(marker.icon, x, y, marker.width, marker.height);
 
+      } else if (marker.type === "text") {
+    marker.width = 25 / zoomLevel;
+    marker.height = 25 / zoomLevel;
+    image(marker.icon, x, y, marker.width, marker.height);
+
   // Draw the label
   }if (marker.label) {
     fill(0);
@@ -167,21 +172,46 @@ function drawMarker(marker, x, y) {
 // ***************************************************************************
 
 function onMarkerCollision(marker, markerX, markerY) {
-  if (marker.type === "image" && marker.image) {
-    push();
-    resetMatrix();
-    let screenX = markerX * zoomLevel + panX;
-    let screenY = markerY * zoomLevel + panY;
-    image(marker.image, screenX, screenY, 100, 100);
-    pop();
+  if (marker.overlaySuppressed) {
+    return;
+  }
 
+  if (marker.type === "image" && marker.image) {
+    if (!marker.overlayActive) {
+      activateOverlay(marker, "image");
+    }
   } else if (marker.type === "audio" && marker.audio && !marker.isPlaying) {
-    marker.isPlaying = true;
-    marker.audio.play();
-    setTimeout(() => {
-      marker.isPlaying = false;
-      marker.audio.stop();
-    }, 5000);
+    activateOverlay(marker, "audio");
+  } else if (marker.type === "text" && marker.text) {
+    activateOverlay(marker, "text");
+  }
+}
+
+function openMarkerUnderLocation() {
+  for (let marker of markers) {
+    let x = map(marker.lon, BOUNDS.minLon, BOUNDS.maxLon, 0, width);
+    let y = map(marker.lat, BOUNDS.maxLat, BOUNDS.minLat, 0, width / geoAspectRatio);
+    const w = marker.width || 25 / zoomLevel;
+    const h = marker.height || 25 / zoomLevel;
+
+    if (
+      locationX + locationImgWidth >= x &&
+      locationX <= x + w &&
+      locationY + locationImgHeight >= y &&
+      locationY <= y + h
+    ) {
+      marker.overlaySuppressed = false;
+      if (marker.type === "image" && marker.image) {
+        activateOverlay(marker, "image");
+        return;
+      } else if (marker.type === "audio" && marker.audio) {
+        activateOverlay(marker, "audio");
+        return;
+      } else if (marker.type === "text" && marker.text) {
+        activateOverlay(marker, "text");
+        return;
+      }
+    }
   }
 }
 

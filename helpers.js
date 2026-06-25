@@ -39,12 +39,20 @@ function mouseWheel(event) {
 
 // Handle mouse drag for panning
 function mousePressed() {
+  if (handleOverlayMousePressed && handleOverlayMousePressed()) {
+    return false;
+  }
+
   prevMouseX = mouseX;
   prevMouseY = mouseY;
 }
 
 // Handle mouse drag for panning
 function mouseDragged() {
+  if (overlayIsActive && overlayIsActive()) {
+    return false;
+  }
+
   const deltaX = mouseX - prevMouseX;
   const deltaY = mouseY - prevMouseY;
 
@@ -63,6 +71,9 @@ function doubleClicked() {
   locationX = (mouseX - panX) / zoomLevel;
   locationY = (mouseY - panY) / zoomLevel;
   showLocationInMap();
+  if (typeof openMarkerUnderLocation === "function") {
+    openMarkerUnderLocation();
+  }
 }
 
 //Converts a longitude coordinate to a canvas X position.
